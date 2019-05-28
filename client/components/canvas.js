@@ -33,7 +33,7 @@ class Canvas extends Component {
     const paddleHeight = 10
     let paddleWidth = 75
     let paddleX = (canvas.width - paddleWidth) / 2
-    y = (canvas.width - paddleWidth) / 2 + 2
+    y = canvas.height - paddleHeight * 5
     let rightPressed = false
     let leftPressed = false
     let gameStarted = false
@@ -273,6 +273,7 @@ class Canvas extends Component {
           if (lives > 0) {
             gameStarted = false
             clearInterval(interval)
+            visPowers=[]
             lives--
             x = paddleX + paddleWidth / 2
             y = canvas.height - paddleHeight * 5
