@@ -288,6 +288,7 @@ class Canvas extends Component {
           (x > paddleX && x < paddleX + paddleWidth)
         ) {
           if (rightPressed || leftPressed) {
+            y--
             dx++
             dy *= -1
           } else dy *= -1

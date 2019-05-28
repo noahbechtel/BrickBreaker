@@ -454,6 +454,7 @@ function (_Component) {
 
           if (y > canvas.height - paddleHeight * 4 - ballRadius && x > paddleX && x < paddleX + paddleWidth) {
             if (rightPressed || leftPressed) {
+              y--;
               dx++;
               dy *= -1;
             } else dy *= -1;
