@@ -41,6 +41,7 @@ class Canvas extends Component {
     let score = 0
     let lives = 3
     let name = ''
+    let pSpeed = 7
     let visPowers = []
     let powerUps = [
       () => {
@@ -57,6 +58,7 @@ class Canvas extends Component {
         dy *= 1.5
       }
     ]
+
     // blocks
     let brickWidth = 75
     let brickHeight = 20
@@ -97,7 +99,10 @@ class Canvas extends Component {
         if (!gameStarted) {
           if (dx > 0) dx = -2
         } else leftPressed = true
-      } else if (evt.keyCode == 32 && gameStarted === false) {
+      } else if (
+        evt.keyCode == 32 ||
+        (evt.touches[0] && gameStarted === false)
+      ) {
         gameStarted = true
         interval = setInterval(draw, 10)
       }
@@ -112,6 +117,25 @@ class Canvas extends Component {
     }
     canvas.addEventListener('keydown', keyDownHandler, false)
     canvas.addEventListener('keyup', keyUpHandler, false)
+    canvas.addEventListener('touchstart', keyDownHandler, false)
+    const motionHandler = evt => {
+      let tilt = Math.round(evt.gamma)
+      tilt > 20 || tilt < -20 ? (pSpeed = 10) : (pSpeed = 6)
+      if (tilt > 5) {
+        rightPressed = true
+        leftPressed = false
+      } else if (tilt < -5) {
+        rightPressed = false
+        leftPressed = true
+      } else {
+        rightPressed = false
+        leftPressed = false
+      }
+    }
+
+    if (window.DeviceMotionEvent) {
+      window.addEventListener('deviceorientation', motionHandler, true)
+    }
 
     const endGame = () => {
       name = prompt('Please enter your name')
@@ -262,9 +286,9 @@ class Canvas extends Component {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       if (!gameOver) {
         if (rightPressed && paddleX < canvas.width - paddleWidth) {
-          paddleX += 7
+          paddleX += pSpeed
         } else if (leftPressed && paddleX > 0) {
-          paddleX -= 7
+          paddleX -= pSpeed
         }
 
         if (y + dy < ballRadius) {
@@ -273,7 +297,7 @@ class Canvas extends Component {
           if (lives > 0) {
             gameStarted = false
             clearInterval(interval)
-            visPowers=[]
+            visPowers = []
             lives--
             x = paddleX + paddleWidth / 2
             y = canvas.height - paddleHeight * 5
@@ -291,7 +315,10 @@ class Canvas extends Component {
             y--
             dx++
             dy *= -1
-          } else dy *= -1
+          } else {
+            dy *= -1
+            y--
+          }
         }
 
         if (

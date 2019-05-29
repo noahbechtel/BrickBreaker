@@ -213,6 +213,7 @@ function (_Component) {
       var score = 0;
       var lives = 3;
       var name = '';
+      var pSpeed = 7;
       var visPowers = [];
       var powerUps = [function () {
         paddleWidth = 200;
@@ -267,7 +268,7 @@ function (_Component) {
           if (!gameStarted) {
             if (dx > 0) dx = -2;
           } else leftPressed = true;
-        } else if (evt.keyCode == 32 && gameStarted === false) {
+        } else if (evt.keyCode == 32 || evt.touches[0] && gameStarted === false) {
           gameStarted = true;
           interval = setInterval(draw, 10);
         }
@@ -283,6 +284,27 @@ function (_Component) {
 
       canvas.addEventListener('keydown', keyDownHandler, false);
       canvas.addEventListener('keyup', keyUpHandler, false);
+      canvas.addEventListener('touchstart', keyDownHandler, false);
+
+      var motionHandler = function motionHandler(evt) {
+        var tilt = Math.round(evt.gamma);
+        tilt > 20 || tilt < -20 ? pSpeed = 10 : pSpeed = 6;
+
+        if (tilt > 5) {
+          rightPressed = true;
+          leftPressed = false;
+        } else if (tilt < -5) {
+          rightPressed = false;
+          leftPressed = true;
+        } else {
+          rightPressed = false;
+          leftPressed = false;
+        }
+      };
+
+      if (window.DeviceMotionEvent) {
+        window.addEventListener('deviceorientation', motionHandler, true);
+      }
 
       var endGame = function endGame() {
         name = prompt('Please enter your name');
@@ -430,9 +452,9 @@ function (_Component) {
 
         if (!gameOver) {
           if (rightPressed && paddleX < canvas.width - paddleWidth) {
-            paddleX += 7;
+            paddleX += pSpeed;
           } else if (leftPressed && paddleX > 0) {
-            paddleX -= 7;
+            paddleX -= pSpeed;
           }
 
           if (y + dy < ballRadius) {
@@ -457,7 +479,10 @@ function (_Component) {
               y--;
               dx++;
               dy *= -1;
-            } else dy *= -1;
+            } else {
+              dy *= -1;
+              y--;
+            }
           }
 
           if (x + dx < ballRadius || x + dx > canvas.width - ballRadius || x + dx === paddleX + paddleWidth - ballRadius && x + dx === paddleX - ballRadius && y > canvas.height - paddleHeight * 4 - ballRadius) {
