@@ -66,7 +66,7 @@ class Canvas extends Component {
     let brickHeight = 20
     let brickPadding = 10
     let brickOffsetTop = 30
-    let brickOffsetLeft = 10
+    let brickOffsetLeft = (canvas.width % (brickWidth + brickPadding)) / 2
     let brickRowCount = (canvas.width * 0.33) / (brickOffsetTop + brickHeight)
     let brickColumnCount = Math.round(
       canvas.width / (brickOffsetLeft + brickWidth + brickPadding)
@@ -335,9 +335,9 @@ class Canvas extends Component {
       }
     }
     const collisionDetection = () => {
-      for (var c = 0; c < brickColumnCount; c++) {
-        for (var r = 0; r < brickRowCount; r++) {
-          var b = bricks[c][r]
+      for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+          let b = bricks[c][r]
           if (
             x > b.x &&
             x < b.x + brickWidth &&
@@ -348,12 +348,12 @@ class Canvas extends Component {
             dy = -dy
             b.alive = false
             score += 10
-
-            if (score == brickRowCount * brickColumnCount) {
-              endGame()
-            }
           }
+
         }
+      }
+      if (score/10 >= brickRowCount * brickColumnCount) {
+        endGame()
       }
     }
     const draw = () => {
