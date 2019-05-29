@@ -80,8 +80,7 @@ class Canvas extends Component {
       for (var r = 0; r < brickRowCount; r++) {
         i++
         bricks[c][r] = { x: 0, y: 0, alive: true }
-        // .includes(i)
-        if (powerUpIds) {
+        if (powerUpIds.includes(i)) {
           bricks[c][r].powerUp =
             powerUps[Math.round(Math.random() * (powerUps.length - 1) + 1)]
         }
@@ -221,7 +220,11 @@ class Canvas extends Component {
           } else {
             if (brick.powerUp) {
               const { x, y, powerUp } = brick
-              visPowers.push({ x:x+ brickWidth / 2, y: y+ brickHeight / 2, powerUp })
+              visPowers.push({
+                x: x + brickWidth / 2,
+                y: y + brickHeight / 2,
+                powerUp
+              })
               brick.powerUp = false
             }
           }
@@ -245,12 +248,7 @@ class Canvas extends Component {
             note = power.powerUp.message
           } else {
             ctx.beginPath()
-            ctx.rect(
-              power.x,
-              power.y ,
-              ballRadius,
-              ballRadius
-            )
+            ctx.rect(power.x, power.y, ballRadius, ballRadius)
             ctx.fillStyle = `#ffffff`
             ctx.fill()
             ctx.closePath()
