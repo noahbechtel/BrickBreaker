@@ -28,7 +28,6 @@ class Canvas extends Component {
     let lives = 3
     let name = ''
     let currentPower
-    let duration
     let note = ''
     let pSpeed = 7
     let visPowers = []
@@ -81,7 +80,8 @@ class Canvas extends Component {
       for (var r = 0; r < brickRowCount; r++) {
         i++
         bricks[c][r] = { x: 0, y: 0, alive: true }
-        if (powerUpIds.includes(i)) {
+        // .includes(i)
+        if (powerUpIds) {
           bricks[c][r].powerUp =
             powerUps[Math.round(Math.random() * (powerUps.length - 1) + 1)]
         }
@@ -221,7 +221,7 @@ class Canvas extends Component {
           } else {
             if (brick.powerUp) {
               const { x, y, powerUp } = brick
-              visPowers.push({ x, y, powerUp })
+              visPowers.push({ x:x+ brickWidth / 2, y: y+ brickHeight / 2, powerUp })
               brick.powerUp = false
             }
           }
@@ -230,21 +230,24 @@ class Canvas extends Component {
     }
 
     const drawPowerUps = () => {
+      let id = 0
       visPowers.map(power => {
-        power.y++
         if (power.y < canvas.height) {
           if (
             power.y > paddleY &&
-            (power.x > paddleX && power.x < paddleX + paddleWidth)
+            power.y < paddleY + paddleHeight &&
+            power.x > paddleX &&
+            power.x < paddleX + paddleWidth
           ) {
-            visPowers.splice(visPowers.indexOf(power), 1)
+            visPowers.splice(id, 1)
+            power.y = canvas.height + 1
             power.powerUp.func()
             note = power.powerUp.message
           } else {
             ctx.beginPath()
             ctx.rect(
-              power.x + brickHeight / 2,
-              power.y + brickWidth / 2,
+              power.x,
+              power.y ,
               ballRadius,
               ballRadius
             )
@@ -253,8 +256,10 @@ class Canvas extends Component {
             ctx.closePath()
           }
         } else {
-          visPowers.splice(visPowers.indexOf(power), 1)
+          visPowers.splice(id, 1)
         }
+        id++
+        power.y++
       })
     }
     let timer = 440

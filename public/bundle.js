@@ -177,24 +177,7 @@ function (_Component) {
 
       this.props.getScores();
       var canvas = this.refs.canvas;
-      var ctx = canvas.getContext('2d');
-
-      var hashCode = function hashCode(str) {
-        // java String#hashCode
-        var hash = 0;
-
-        for (var i = 0; i < str.length; i++) {
-          hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-
-        return hash;
-      };
-
-      var intToRGB = function intToRGB(i) {
-        var c = (i & 0x00ffffff).toString(16).toUpperCase();
-        return '00000'.substring(0, 6 - c.length) + c;
-      }; // ball
-
+      var ctx = canvas.getContext('2d'); // ball
 
       var x = canvas.width / 2;
       var dx = 2;
@@ -212,6 +195,7 @@ function (_Component) {
       var score = 0;
       var lives = 3;
       var name = '';
+      var currentPower;
       var note = '';
       var pSpeed = 7;
       var visPowers = [];
@@ -262,10 +246,11 @@ function (_Component) {
           bricks[c][r] = {
             x: 0,
             y: 0,
-            alive: true
+            alive: true // .includes(i)
+
           };
 
-          if (powerUpIds.includes(i)) {
+          if (powerUpIds) {
             bricks[c][r].powerUp = powerUps[Math.round(Math.random() * (powerUps.length - 1) + 1)];
           }
         }
@@ -346,6 +331,17 @@ function (_Component) {
         }
       };
 
+      var duration;
+
+      var codeHotShot = function codeHotShot() {
+        if (duration > 0 && currentPower) {
+          currentPower();
+          duration--;
+        } else {
+          currentPower = null;
+        }
+      };
+
       var drawScore = function drawScore() {
         ctx.font = '16px Arial';
         ctx.fillStyle = '#ffffff';
@@ -413,24 +409,27 @@ function (_Component) {
       };
 
       var drawPowerUps = function drawPowerUps() {
+        var id = 0;
         visPowers.map(function (power) {
-          power.y++;
-
           if (power.y < canvas.height) {
-            if (power.y > paddleY && power.x > paddleX && power.x < paddleX + paddleWidth) {
-              visPowers.splice(visPowers.indexOf(power), 1);
+            if (power.y > paddleY && power.y < paddleY + paddleHeight && power.x > paddleX && power.x < paddleX + paddleWidth) {
+              visPowers.splice(id, 1);
+              power.y = canvas.height + 1;
               power.powerUp.func();
               note = power.powerUp.message;
             } else {
               ctx.beginPath();
-              ctx.rect(power.x + brickHeight / 2, power.y + brickWidth / 2, ballRadius, ballRadius);
+              ctx.rect(power.x, power.y, ballRadius, ballRadius);
               ctx.fillStyle = "#ffffff";
               ctx.fill();
               ctx.closePath();
             }
           } else {
-            visPowers.splice(visPowers.indexOf(power), 1);
+            visPowers.splice(id, 1);
           }
+
+          id++;
+          power.y++;
         });
       };
 
@@ -526,6 +525,7 @@ function (_Component) {
           drawMessage();
           drawLives();
           drawBricks();
+          codeHotShot();
           drawBall();
           drawPaddle();
           collisionDetection();
