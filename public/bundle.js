@@ -230,7 +230,7 @@ function (_Component) {
       var brickOffsetTop = 30;
       var brickOffsetLeft = canvas.width % (brickWidth + brickPadding) / 2;
       var brickRowCount = canvas.width * 0.33 / (brickOffsetTop + brickHeight);
-      var brickColumnCount = Math.round(canvas.width / (brickOffsetLeft + brickWidth + brickPadding));
+      var brickColumnCount = Math.round(canvas.width / (15 + brickWidth));
       var powerUpIds = [];
 
       for (var _i = brickRowCount * brickColumnCount / 10; _i > 0; _i--) {
@@ -300,8 +300,8 @@ function (_Component) {
           leftPressed = false;
         }
 
-        paralaxX = tiltX / 8;
-        paralaxY = tiltY / 8;
+        paralaxX = tiltX / 5;
+        paralaxY = tiltY / 5;
       };
 
       if (window.DeviceMotionEvent) {
