@@ -25,15 +25,15 @@ class Canvas extends Component {
     }
     // ball
     let x = canvas.width / 2
-    let y = 0
+
     let dx = 2
     let dy = -2
     const ballRadius = 10
-    // paddle
     const paddleHeight = 10
     let paddleWidth = 75
+    let paddleY = canvas.height - paddleHeight * 4
     let paddleX = (canvas.width - paddleWidth) / 2
-    y = canvas.height - paddleHeight * 5
+    let y = paddleY - ballRadius
     let rightPressed = false
     let leftPressed = false
     let gameStarted = false
@@ -41,21 +41,34 @@ class Canvas extends Component {
     let score = 0
     let lives = 3
     let name = ''
+    let note = ''
     let pSpeed = 7
     let visPowers = []
     let powerUps = [
-      () => {
-        paddleWidth = 200
+      {
+        func: () => {
+          paddleWidth = 200
+        },
+        message: 'Thicc Paddle'
       },
-      () => {
-        paddleWidth = 30
+      {
+        func: () => {
+          paddleWidth = 30
+        },
+        message: 'Smol Paddle'
       },
-      () => {
-        lives++
+      {
+        func: () => {
+          lives++
+        },
+        message: 'Life Up!'
       },
-      () => {
-        dx *= 1.5
-        dy *= 1.5
+      {
+        func: () => {
+          dx *= 1.5
+          dy *= 1.5
+        },
+        message: 'Aw shit its faster.'
       }
     ]
 
@@ -100,7 +113,7 @@ class Canvas extends Component {
           if (dx > 0) dx = -2
         } else leftPressed = true
       } else if (
-        evt.keyCode == 32 ||
+        (evt.keyCode == 32 && gameStarted === false) ||
         (evt.touches[0] && gameStarted === false)
       ) {
         gameStarted = true
@@ -118,6 +131,7 @@ class Canvas extends Component {
     canvas.addEventListener('keydown', keyDownHandler, false)
     canvas.addEventListener('keyup', keyUpHandler, false)
     canvas.addEventListener('touchstart', keyDownHandler, false)
+
     const motionHandler = evt => {
       let tilt = Math.round(evt.gamma)
       tilt > 20 || tilt < -20 ? (pSpeed = 10) : (pSpeed = 6)
@@ -145,7 +159,7 @@ class Canvas extends Component {
     const drawBall = () => {
       ctx.beginPath()
       ctx.arc(x, y, ballRadius, 0, Math.PI * 2)
-      ctx.fillStyle = `#${intToRGB(hashCode(2 + '#0095DD').toString(2))}`
+      ctx.fillStyle = `#ffffff`
       ctx.fill()
       ctx.closePath()
     }
@@ -154,7 +168,7 @@ class Canvas extends Component {
       for (let i = 0; i < lives; i++) {
         ctx.beginPath()
         ctx.arc(buffer + (20 + ballRadius) * i, 15, ballRadius, 0, Math.PI * 2)
-        ctx.fillStyle = `#${intToRGB(hashCode(2 + '#0095DD').toString(2))}`
+        ctx.fillStyle = `#ffffff`
         ctx.fill()
         ctx.closePath()
       }
@@ -162,12 +176,12 @@ class Canvas extends Component {
 
     const drawScore = () => {
       ctx.font = '16px Arial'
-      ctx.fillStyle = '#0095DD'
+      ctx.fillStyle = '#ffffff'
       ctx.fillText('Score: ' + score, 8, 20)
     }
     const drawHighScores = () => {
       ctx.font = '18px Arial'
-      ctx.fillStyle = '#0095DD'
+      ctx.fillStyle = '#ffffff'
       ctx.fillText('HighScores', 8, 20)
       let i = 0
       let insert = false
@@ -185,13 +199,8 @@ class Canvas extends Component {
 
     const drawPaddle = () => {
       ctx.beginPath()
-      ctx.rect(
-        paddleX,
-        canvas.height - paddleHeight * 4,
-        paddleWidth,
-        paddleHeight
-      )
-      ctx.fillStyle = '#0095DD'
+      ctx.rect(paddleX, paddleY, paddleWidth, paddleHeight)
+      ctx.fillStyle = '#f2f2f2'
       ctx.fill()
       ctx.closePath()
     }
@@ -207,7 +216,8 @@ class Canvas extends Component {
           if (brick.alive) {
             ctx.beginPath()
             ctx.rect(brickX, brickY, brickWidth, brickHeight)
-            ctx.fillStyle = `#${intToRGB(hashCode((r + c + 24).toString(2)))}`
+            if (r % 2 === 0) ctx.fillStyle = `#bf8ccc`
+            else ctx.fillStyle = '#ff66cc'
             ctx.fill()
             ctx.closePath()
           } else {
@@ -226,24 +236,40 @@ class Canvas extends Component {
         power.y++
         if (power.y < canvas.height) {
           if (
-            power.y > canvas.height - paddleHeight * 4 - ballRadius &&
+            power.y > paddleY &&
             (power.x > paddleX && power.x < paddleX + paddleWidth)
           ) {
             visPowers.splice(visPowers.indexOf(power), 1)
-            power.powerUp()
+            power.powerUp.func()
+            note = power.powerUp.message
           } else {
             ctx.beginPath()
-            ctx.rect(power.x, power.y, ballRadius, ballRadius)
-            ctx.fillStyle = `#${intToRGB(hashCode(power.powerUp))}`
+            ctx.rect(
+              power.x + brickHeight / 2,
+              power.y + brickWidth / 2,
+              ballRadius,
+              ballRadius
+            )
+            ctx.fillStyle = `#ffffff`
             ctx.fill()
             ctx.closePath()
           }
         } else {
           visPowers.splice(visPowers.indexOf(power), 1)
         }
-
-        return power
       })
+    }
+    let timer = 440
+    const drawMessage = () => {
+      if (note !== '' && timer > 0) {
+        ctx.font = '30px Arial'
+        ctx.fillStyle = '#ffffff'
+        ctx.fillText(note, canvas.width / 2, canvas.height / 2)
+        timer--
+      } else {
+        note = ''
+        timer = 440
+      }
     }
     const collisionDetection = () => {
       for (var c = 0; c < brickColumnCount; c++) {
@@ -260,30 +286,30 @@ class Canvas extends Component {
             b.alive = false
             score += 10
 
-            if (
-              score == brickRowCount * brickColumnCount ||
-              this.props.history.location.pathname === '/win'
-            ) {
+            if (score == brickRowCount * brickColumnCount) {
               endGame()
             }
-          } else if (b.powerUp && !b.alive) {
-            ctx.beginPath()
-            ctx.arc(
-              b.x + brickWidth / 2,
-              b.y + brickHeight / 2,
-              ballRadius,
-              0,
-              Math.PI * 2
-            )
-            ctx.fillStyle = `#${intToRGB(hashCode(2 + '#0095DD').toString(2))}`
-            ctx.fill()
-            ctx.closePath()
           }
+          // else if (b.powerUp && !b.alive) {
+          //   ctx.beginPath()
+          //   ctx.arc(
+          //     b.x + brickWidth / 2,
+          //     b.y + brickHeight / 2,
+          //     ballRadius,
+          //     0,
+          //     Math.PI * 2
+          //   )
+          //   ctx.fillStyle = `#${intToRGB(hashCode(2 + '#0095DD').toString(2))}`
+          //   ctx.fill()
+          //   ctx.closePath()
+          // }
         }
       }
     }
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = '#26e8cc'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
       if (!gameOver) {
         if (rightPressed && paddleX < canvas.width - paddleWidth) {
           paddleX += pSpeed
@@ -330,6 +356,7 @@ class Canvas extends Component {
         ) {
           dx *= -1
         }
+        drawMessage()
         drawLives()
         drawBricks()
         drawBall()
