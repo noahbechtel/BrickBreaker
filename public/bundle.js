@@ -228,9 +228,9 @@ function (_Component) {
       var brickHeight = 20;
       var brickPadding = 10;
       var brickOffsetTop = 30;
-      var brickOffsetLeft = 30;
+      var brickOffsetLeft = 10;
       var brickRowCount = canvas.width * 0.33 / (brickOffsetTop + brickHeight);
-      var brickColumnCount = canvas.width / (brickOffsetLeft + brickWidth - 10);
+      var brickColumnCount = Math.round(canvas.width / (brickOffsetLeft + brickWidth + brickPadding));
       var powerUpIds = [];
 
       for (var _i = brickRowCount * brickColumnCount / 10; _i > 0; _i--) {
