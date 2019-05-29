@@ -9,20 +9,6 @@ class Canvas extends Component {
     const canvas = this.refs.canvas
     const ctx = canvas.getContext('2d')
 
-    const hashCode = str => {
-      // java String#hashCode
-      var hash = 0
-      for (var i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash)
-      }
-      return hash
-    }
-
-    const intToRGB = i => {
-      var c = (i & 0x00ffffff).toString(16).toUpperCase()
-
-      return '00000'.substring(0, 6 - c.length) + c
-    }
     // ball
     let x = canvas.width / 2
 
@@ -41,6 +27,8 @@ class Canvas extends Component {
     let score = 0
     let lives = 3
     let name = ''
+    let currentPower
+    let duration
     let note = ''
     let pSpeed = 7
     let visPowers = []
@@ -171,6 +159,16 @@ class Canvas extends Component {
         ctx.fillStyle = `#ffffff`
         ctx.fill()
         ctx.closePath()
+      }
+    }
+
+    let duration
+    const codeHotShot = () => {
+      if (duration > 0 && currentPower) {
+        currentPower()
+        duration--
+      } else {
+        currentPower = null
       }
     }
 
@@ -359,6 +357,7 @@ class Canvas extends Component {
         drawMessage()
         drawLives()
         drawBricks()
+        codeHotShot()
         drawBall()
         drawPaddle()
         collisionDetection()
