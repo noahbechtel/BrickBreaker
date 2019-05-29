@@ -80,7 +80,9 @@ class Canvas extends Component {
       for (var r = 0; r < brickRowCount; r++) {
         i++
         bricks[c][r] = { x: 0, y: 0, alive: true }
-        if (powerUpIds.includes(i)) {
+
+        // .includes(i)
+        if (powerUpIds) {
           bricks[c][r].powerUp =
             powerUps[Math.floor(Math.random() * powerUps.length)]
         }
@@ -232,6 +234,31 @@ class Canvas extends Component {
       }
     }
 
+    const drawStar = (cx, cy, spikes, outerRadius, innerRadius) => {
+      let rot = (Math.PI / 2) * 3
+      let x = cx
+      let y = cy
+      let step = Math.PI / spikes
+
+      ctx.beginPath()
+      ctx.moveTo(cx, cy - outerRadius)
+      for (i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius
+        y = cy + Math.sin(rot) * outerRadius
+        ctx.lineTo(x, y)
+        rot += step
+
+        x = cx + Math.cos(rot) * innerRadius
+        y = cy + Math.sin(rot) * innerRadius
+        ctx.lineTo(x, y)
+        rot += step
+      }
+      ctx.lineTo(cx, cy - outerRadius)
+      ctx.closePath()
+      ctx.fillStyle = 'white'
+      ctx.fill()
+    }
+
     const drawPowerUps = () => {
       let id = 0
       visPowers.map(power => {
@@ -247,11 +274,7 @@ class Canvas extends Component {
             power.powerUp.func()
             note = power.powerUp.message
           } else {
-            ctx.beginPath()
-            ctx.rect(power.x, power.y, ballRadius, ballRadius)
-            ctx.fillStyle = `#ffffff`
-            ctx.fill()
-            ctx.closePath()
+            drawStar(power.x, power.y, 4, ballRadius, ballRadius - 5)
           }
         } else {
           visPowers.splice(id, 1)
@@ -265,7 +288,7 @@ class Canvas extends Component {
       if (note !== '' && timer > 0) {
         ctx.font = '30px Arial'
         ctx.fillStyle = '#ffffff'
-        ctx.fillText(note, canvas.width / 2, canvas.height / 2)
+        ctx.fillText(note, canvas.width / 2, canvas.height / 1.5)
         timer--
       } else {
         note = ''
@@ -291,19 +314,6 @@ class Canvas extends Component {
               endGame()
             }
           }
-          // else if (b.powerUp && !b.alive) {
-          //   ctx.beginPath()
-          //   ctx.arc(
-          //     b.x + brickWidth / 2,
-          //     b.y + brickHeight / 2,
-          //     ballRadius,
-          //     0,
-          //     Math.PI * 2
-          //   )
-          //   ctx.fillStyle = `#${intToRGB(hashCode(2 + '#0095DD').toString(2))}`
-          //   ctx.fill()
-          //   ctx.closePath()
-          // }
         }
       }
     }
