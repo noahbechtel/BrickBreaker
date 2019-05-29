@@ -246,11 +246,10 @@ function (_Component) {
           bricks[c][r] = {
             x: 0,
             y: 0,
-            alive: true // .includes(i)
-
+            alive: true
           };
 
-          if (powerUpIds) {
+          if (powerUpIds.includes(i)) {
             bricks[c][r].powerUp = powerUps[Math.round(Math.random() * (powerUps.length - 1) + 1)];
           }
         }
@@ -397,8 +396,8 @@ function (_Component) {
                     _y = brick.y,
                     powerUp = brick.powerUp;
                 visPowers.push({
-                  x: _x,
-                  y: _y,
+                  x: _x + brickWidth / 2,
+                  y: _y + brickHeight / 2,
                   powerUp: powerUp
                 });
                 brick.powerUp = false;
