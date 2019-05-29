@@ -140,8 +140,8 @@ class Canvas extends Component {
         leftPressed = false
       }
 
-      paralaxX = tiltX / 8
-      paralaxY = tiltY / 8
+      paralaxX = tiltX / 5
+      paralaxY = tiltY / 5
     }
 
     if (window.DeviceMotionEvent) {
