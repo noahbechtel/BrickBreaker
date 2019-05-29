@@ -82,7 +82,7 @@ class Canvas extends Component {
         bricks[c][r] = { x: 0, y: 0, alive: true }
         if (powerUpIds.includes(i)) {
           bricks[c][r].powerUp =
-            powerUps[Math.round(Math.random() * (powerUps.length - 1) + 1)]
+            powerUps[Math.floor(Math.random() * powerUps.length)]
         }
       }
     }
