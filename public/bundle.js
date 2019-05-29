@@ -195,6 +195,8 @@ function (_Component) {
       var score = 0;
       var lives = 3;
       var name = '';
+      var paralaxX = 2;
+      var paralaxY = 2;
       var currentPower;
       var note = '';
       var pSpeed = 7;
@@ -246,11 +248,10 @@ function (_Component) {
           bricks[c][r] = {
             x: 0,
             y: 0,
-            alive: true // .includes(i)
-
+            alive: true
           };
 
-          if (powerUpIds) {
+          if (powerUpIds.includes(i)) {
             bricks[c][r].powerUp = powerUps[Math.floor(Math.random() * powerUps.length)];
           }
         }
@@ -284,19 +285,23 @@ function (_Component) {
       canvas.addEventListener('touchstart', keyDownHandler, false);
 
       var motionHandler = function motionHandler(evt) {
-        var tilt = Math.round(evt.gamma);
-        tilt > 20 || tilt < -20 ? pSpeed = 10 : pSpeed = 6;
+        var tiltX = Math.round(evt.gamma);
+        var tiltY = Math.round(evt.beta);
+        tiltX > 20 || tiltX < -20 ? pSpeed = 10 : pSpeed = 6;
 
-        if (tilt > 5) {
+        if (tiltX > 5) {
           rightPressed = true;
           leftPressed = false;
-        } else if (tilt < -5) {
+        } else if (tiltX < -5) {
           rightPressed = false;
           leftPressed = true;
         } else {
           rightPressed = false;
           leftPressed = false;
         }
+
+        paralaxX = tiltX / 8;
+        paralaxY = tiltY / 8;
       };
 
       if (window.DeviceMotionEvent) {
@@ -313,6 +318,11 @@ function (_Component) {
 
       var drawBall = function drawBall() {
         ctx.beginPath();
+        ctx.arc(x + paralaxX, y + paralaxY, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "#d1d1d1";
+        ctx.fill();
+        ctx.closePath();
+        ctx.beginPath();
         ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
@@ -323,6 +333,11 @@ function (_Component) {
         var buffer = 100;
 
         for (var _i2 = 0; _i2 < lives; _i2++) {
+          ctx.beginPath();
+          ctx.arc(x + paralaxX, y + paralaxY, ballRadius, 0, Math.PI * 2);
+          ctx.fillStyle = "#d1d1d1";
+          ctx.fill();
+          ctx.closePath();
           ctx.beginPath();
           ctx.arc(buffer + (20 + ballRadius) * _i2, 15, ballRadius, 0, Math.PI * 2);
           ctx.fillStyle = "#ffffff";
@@ -370,6 +385,11 @@ function (_Component) {
 
       var drawPaddle = function drawPaddle() {
         ctx.beginPath();
+        ctx.rect(paddleX + paralaxX, paddleY + paralaxY, paddleWidth, paddleHeight);
+        ctx.fillStyle = '#d1d1d1';
+        ctx.fill();
+        ctx.closePath();
+        ctx.beginPath();
         ctx.rect(paddleX, paddleY, paddleWidth, paddleHeight);
         ctx.fillStyle = '#f2f2f2';
         ctx.fill();
@@ -386,6 +406,11 @@ function (_Component) {
             brick.y = brickY;
 
             if (brick.alive) {
+              ctx.beginPath();
+              ctx.rect(brickX + paralaxX, brickY + paralaxY, brickWidth, brickHeight);
+              if (r % 2 === 0) ctx.fillStyle = "#9b6898";else ctx.fillStyle = '#c14b9a';
+              ctx.fill();
+              ctx.closePath();
               ctx.beginPath();
               ctx.rect(brickX, brickY, brickWidth, brickHeight);
               if (r % 2 === 0) ctx.fillStyle = "#bf8ccc";else ctx.fillStyle = '#ff66cc';

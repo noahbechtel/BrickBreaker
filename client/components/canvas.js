@@ -27,6 +27,8 @@ class Canvas extends Component {
     let score = 0
     let lives = 3
     let name = ''
+    let paralaxX = 2
+    let paralaxY = 2
     let currentPower
     let note = ''
     let pSpeed = 7
@@ -80,9 +82,7 @@ class Canvas extends Component {
       for (var r = 0; r < brickRowCount; r++) {
         i++
         bricks[c][r] = { x: 0, y: 0, alive: true }
-
-        // .includes(i)
-        if (powerUpIds) {
+        if (powerUpIds.includes(i)) {
           bricks[c][r].powerUp =
             powerUps[Math.floor(Math.random() * powerUps.length)]
         }
@@ -122,18 +122,24 @@ class Canvas extends Component {
     canvas.addEventListener('touchstart', keyDownHandler, false)
 
     const motionHandler = evt => {
-      let tilt = Math.round(evt.gamma)
-      tilt > 20 || tilt < -20 ? (pSpeed = 10) : (pSpeed = 6)
-      if (tilt > 5) {
+      let tiltX = Math.round(evt.gamma)
+      let tiltY = Math.round(evt.beta)
+
+      tiltX > 20 || tiltX < -20 ? (pSpeed = 10) : (pSpeed = 6)
+
+      if (tiltX > 5) {
         rightPressed = true
         leftPressed = false
-      } else if (tilt < -5) {
+      } else if (tiltX < -5) {
         rightPressed = false
         leftPressed = true
       } else {
         rightPressed = false
         leftPressed = false
       }
+
+      paralaxX = tiltX / 8
+      paralaxY = tiltY / 8
     }
 
     if (window.DeviceMotionEvent) {
@@ -147,6 +153,11 @@ class Canvas extends Component {
     }
     const drawBall = () => {
       ctx.beginPath()
+      ctx.arc(x + paralaxX, y + paralaxY, ballRadius, 0, Math.PI * 2)
+      ctx.fillStyle = `#d1d1d1`
+      ctx.fill()
+      ctx.closePath()
+      ctx.beginPath()
       ctx.arc(x, y, ballRadius, 0, Math.PI * 2)
       ctx.fillStyle = `#ffffff`
       ctx.fill()
@@ -155,6 +166,11 @@ class Canvas extends Component {
     const drawLives = () => {
       let buffer = 100
       for (let i = 0; i < lives; i++) {
+        ctx.beginPath()
+        ctx.arc(x + paralaxX, y + paralaxY, ballRadius, 0, Math.PI * 2)
+        ctx.fillStyle = `#d1d1d1`
+        ctx.fill()
+        ctx.closePath()
         ctx.beginPath()
         ctx.arc(buffer + (20 + ballRadius) * i, 15, ballRadius, 0, Math.PI * 2)
         ctx.fillStyle = `#ffffff`
@@ -198,6 +214,16 @@ class Canvas extends Component {
 
     const drawPaddle = () => {
       ctx.beginPath()
+      ctx.rect(
+        paddleX + paralaxX,
+        paddleY + paralaxY,
+        paddleWidth,
+        paddleHeight
+      )
+      ctx.fillStyle = '#d1d1d1'
+      ctx.fill()
+      ctx.closePath()
+      ctx.beginPath()
       ctx.rect(paddleX, paddleY, paddleWidth, paddleHeight)
       ctx.fillStyle = '#f2f2f2'
       ctx.fill()
@@ -213,6 +239,17 @@ class Canvas extends Component {
           brick.x = brickX
           brick.y = brickY
           if (brick.alive) {
+            ctx.beginPath()
+            ctx.rect(
+              brickX + paralaxX,
+              brickY + paralaxY,
+              brickWidth,
+              brickHeight
+            )
+            if (r % 2 === 0) ctx.fillStyle = `#9b6898`
+            else ctx.fillStyle = '#c14b9a'
+            ctx.fill()
+            ctx.closePath()
             ctx.beginPath()
             ctx.rect(brickX, brickY, brickWidth, brickHeight)
             if (r % 2 === 0) ctx.fillStyle = `#bf8ccc`
