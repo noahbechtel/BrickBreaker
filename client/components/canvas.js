@@ -197,9 +197,9 @@ class Canvas extends Component {
       ctx.fillText('Score: ' + score, 8, 20)
     }
     const drawHighScores = () => {
-      ctx.font = '18px Arial'
+      ctx.font = '22px Arial'
       ctx.fillStyle = '#ffffff'
-      ctx.fillText('HighScores', 8, 20)
+      ctx.fillText('HighScores', canvas.width / 2, 20)
       let i = 0
       let insert = false
       this.props.scores.map(entry => {
@@ -349,10 +349,9 @@ class Canvas extends Component {
             b.alive = false
             score += 10
           }
-
         }
       }
-      if (score/10 >= brickRowCount * brickColumnCount) {
+      if (score / 10 >= brickRowCount * brickColumnCount) {
         endGame()
       }
     }
