@@ -67,10 +67,8 @@ class Canvas extends Component {
     let brickPadding = 10
     let brickOffsetTop = 30
     let brickOffsetLeft = (canvas.width % (brickWidth + brickPadding)) / 2
-    let brickRowCount = (canvas.width * 0.33) / (brickOffsetTop + brickHeight)
-    let brickColumnCount = Math.round(
-      canvas.width / (15 + brickWidth)
-    )
+    let brickRowCount = canvas.width / (brickOffsetTop + brickHeight)
+    let brickColumnCount = Math.round(canvas.width / (15 + brickWidth))
     let powerUpIds = []
     for (let i = (brickRowCount * brickColumnCount) / 10; i > 0; i--) {
       powerUpIds.push(
