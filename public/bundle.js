@@ -143,6 +143,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -180,11 +184,11 @@ function (_Component) {
       var ctx = canvas.getContext('2d'); // ball
 
       var x = canvas.width / 2;
-      var dx = 2;
-      var dy = -2;
+      var dx = 8;
+      var dy = -8;
       var ballRadius = 10;
       var paddleHeight = 10;
-      var paddleWidth = 75;
+      var paddleWidth = canvas.width;
       var paddleY = canvas.height - paddleHeight * 4;
       var paddleX = (canvas.width - paddleWidth) / 2;
       var y = paddleY - ballRadius;
@@ -193,6 +197,7 @@ function (_Component) {
       var gameStarted = false;
       var gameOver = false;
       var score = 0;
+      var level = 0;
       var lives = 3;
       var name = '';
       var paralaxX = 2;
@@ -200,18 +205,22 @@ function (_Component) {
       var currentPower;
       var note = '';
       var pSpeed = 7;
+      var remaining = 0;
+      var interval;
       var visPowers = [];
-      var powerUps = [{
-        func: function func() {
-          paddleWidth = 200;
-        },
-        message: 'Thicc Paddle'
-      }, {
-        func: function func() {
-          paddleWidth = 30;
-        },
-        message: 'Smol Paddle'
-      }, {
+      var powerUps = [// {
+      //   func: () => {
+      //     paddleWidth = 200
+      //   },
+      //   message: 'Thicc Paddle'
+      // },
+      // {
+      //   func: () => {
+      //     paddleWidth = 30
+      //   },
+      //   message: 'Smol Paddle'
+      // },
+      {
         func: function func() {
           lives++;
         },
@@ -222,42 +231,85 @@ function (_Component) {
           dy *= 1.5;
         },
         message: 'Aw shit its faster.'
-      }]; // blocks
+      }];
+      var brickWidth;
+      var brickHeight;
+      var brickPadding;
+      var brickOffsetTop;
+      var brickOffsetLeft;
+      var brickRowCount;
+      var brickColumnCount;
+      var powerUpIds;
+      var bricks;
+      var i;
 
-      var brickWidth = 75;
-      var brickHeight = 20;
-      var brickPadding = 10;
-      var brickOffsetTop = 30;
-      var brickOffsetLeft = canvas.width % (brickWidth + brickPadding) / 2;
-      var brickRowCount = canvas.width / (brickOffsetTop + brickHeight);
-      var brickColumnCount = Math.round(canvas.width / (15 + brickWidth));
-      var powerUpIds = [];
+      var setup =
+      /*#__PURE__*/
+      function () {
+        var _ref = _asyncToGenerator(
+        /*#__PURE__*/
+        regeneratorRuntime.mark(function _callee() {
+          return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  x = paddleX + paddleWidth / 2;
+                  y = canvas.height - paddleHeight * 5;
+                  dx = 8;
+                  dy = -8;
+                  clearInterval(interval);
+                  visPowers = [];
+                  gameStarted = false;
 
-      for (var _i = brickRowCount * brickColumnCount / 10; _i > 0; _i--) {
-        powerUpIds.push(Math.round(Math.random() * (brickRowCount * brickColumnCount - 1) + 5));
-      }
+                case 7:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee);
+        }));
 
-      var bricks = [];
-      var i = 0;
+        return function setup() {
+          return _ref.apply(this, arguments);
+        };
+      }();
 
-      for (var c = 0; c < brickColumnCount; c++) {
-        bricks[c] = [];
+      var spawnBlocks = function spawnBlocks() {
+        // blocks
+        brickWidth = 75;
+        brickHeight = 20;
+        brickPadding = 10;
+        brickOffsetTop = 30;
+        brickOffsetLeft = canvas.width % (brickWidth + brickPadding) / 2;
+        brickRowCount = canvas.height / (brickOffsetTop + brickHeight);
+        brickColumnCount = Math.round(canvas.width / (15 + brickWidth));
+        remaining = brickColumnCount * brickColumnCount * (level + 1);
+        powerUpIds = [];
 
-        for (var r = 0; r < brickRowCount; r++) {
-          i++;
-          bricks[c][r] = {
-            x: 0,
-            y: 0,
-            alive: true
-          };
+        for (var _i = brickRowCount * brickColumnCount / 10; _i > 0; _i--) {
+          powerUpIds.push(Math.round(Math.random() * (brickRowCount * brickColumnCount - 1) + 5));
+        }
 
-          if (powerUpIds.includes(i)) {
-            bricks[c][r].powerUp = powerUps[Math.floor(Math.random() * powerUps.length)];
+        bricks = [];
+        i = 0;
+
+        for (var c = 0; c < brickColumnCount; c++) {
+          bricks[c] = [];
+
+          for (var r = 0; r < brickRowCount; r++) {
+            i++;
+            bricks[c][r] = {
+              x: 0,
+              y: 0,
+              hp: 1 + level
+            };
+
+            if (powerUpIds.includes(i)) {
+              bricks[c][r].powerUp = powerUps[Math.floor(Math.random() * powerUps.length)];
+            }
           }
         }
-      }
-
-      var interval;
+      };
 
       var keyDownHandler = function keyDownHandler(evt) {
         if (evt.key == 'Right' || evt.key == 'ArrowRight' && gameStarted === true) {
@@ -396,7 +448,34 @@ function (_Component) {
         ctx.closePath();
       };
 
+      var pickColor = function pickColor(row, z, hp) {
+        var mod = hp * (hp * 7) * -1 + level * 20;
+
+        if (z) {
+          if (row % 2 === 0) {
+            return "rgb(".concat(193 + mod, ", ").concat(75 + mod, ", ").concat(154 + mod, ")"); // purple foreground
+          } else {
+            return "rgb(".concat(255 + mod, ", ").concat(102 + mod, ", ").concat(204 + mod, ")"); // pink foreground
+          }
+        } else {
+          if (row % 2 === 0) {
+            return "rgb(".concat(155 + mod, ", ").concat(104 + mod, ", ").concat(152 + mod, ")"); // purple background
+          } else {
+            return "rgb(".concat(191 + mod, ", ").concat(140 + mod, ",").concat(204 + mod, ")"); // pink background
+          }
+        }
+      }; // rgb(155, 104, 152) //purple background
+      // rgb(193, 75, 154) //purple foreground
+      // rgb(191, 140, 204) //pink background
+      // rgb(255, 102, 204)//pink foreground
+
+
       var drawBricks = function drawBricks() {
+        if (score === 0 && !gameStarted) {
+          spawnBlocks();
+          setup();
+        }
+
         for (var c = 0; c < brickColumnCount; c++) {
           for (var r = 0; r < brickRowCount; r++) {
             var brick = bricks[c][r];
@@ -405,19 +484,23 @@ function (_Component) {
             brick.x = brickX;
             brick.y = brickY;
 
-            if (brick.alive) {
+            if (brick.hp) {
               ctx.beginPath();
-              ctx.rect(brickX + paralaxX, brickY + paralaxY, brickWidth, brickHeight);
-              if (r % 2 === 0) ctx.fillStyle = "#9b6898";else ctx.fillStyle = '#c14b9a';
+              ctx.rect(brickX + paralaxX, brickY + paralaxY, brickWidth, brickHeight); // if (r % 2 === 0) ctx.fillStyle = `#9b6898`
+              // else ctx.fillStyle = '#c14b9a'
+
+              ctx.fillStyle = pickColor(r, 0, brick.hp);
               ctx.fill();
               ctx.closePath();
               ctx.beginPath();
               ctx.rect(brickX, brickY, brickWidth, brickHeight);
-              if (r % 2 === 0) ctx.fillStyle = "#bf8ccc";else ctx.fillStyle = '#ff66cc';
+              ctx.fillStyle = pickColor(r, 1, brick.hp); // if (r % 2 === 0) ctx.fillStyle = `#bf8ccc`
+              // else ctx.fillStyle = '#ff66cc'
+
               ctx.fill();
               ctx.closePath();
             } else {
-              if (brick.powerUp) {
+              if (brick.powerUp && !brick.hp) {
                 var _x = brick.x,
                     _y = brick.y,
                     powerUp = brick.powerUp;
@@ -494,20 +577,33 @@ function (_Component) {
       };
 
       var collisionDetection = function collisionDetection() {
-        for (var _c = 0; _c < brickColumnCount; _c++) {
-          for (var _r = 0; _r < brickRowCount; _r++) {
-            var b = bricks[_c][_r];
+        for (var c = 0; c < brickColumnCount; c++) {
+          for (var r = 0; r < brickRowCount; r++) {
+            var b = bricks[c][r];
 
-            if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight && b.alive) {
+            if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight && b.hp) {
               dy = -dy;
-              b.alive = false;
+              b.hp--;
+
+              if (!b.hp) {
+                remaining--;
+              }
+
               score += 10;
             }
           }
         }
 
-        if (score / 10 >= brickRowCount * brickColumnCount) {
-          endGame();
+        if (!remaining) {
+          level++;
+          x = paddleX + paddleWidth / 2;
+          y = canvas.height - paddleHeight * 5;
+          dx = 8;
+          dy = -8;
+          gameStarted = false;
+          clearInterval(interval);
+          spawnBlocks();
+          draw();
         }
       };
 
@@ -527,14 +623,8 @@ function (_Component) {
             dy *= -1;
           } else if (y + dy > canvas.height - ballRadius) {
             if (lives > 0) {
-              gameStarted = false;
-              clearInterval(interval);
-              visPowers = [];
+              setup();
               lives--;
-              x = paddleX + paddleWidth / 2;
-              y = canvas.height - paddleHeight * 5;
-              dx = 2;
-              dy = -2;
             } else {
               endGame();
             }
@@ -609,7 +699,16 @@ var mapDispatch = function mapDispatch(dispatch) {
   };
 };
 
-var _default = (0, _reactRouterDom.withRouter)((0, _reactRedux.connect)(mapState, mapDispatch)(Canvas));
+var _default = (0, _reactRouterDom.withRouter)((0, _reactRedux.connect)(mapState, mapDispatch)(Canvas)); // for (let i = 0; i < 6; i++) {
+//   for (let j = 0; j < 6; j++) {
+//     ctx.fillStyle = `rgb(
+//         ${Math.floor(255 - 42.5 * i)},
+//         ${Math.floor(255 - 42.5 * j)},
+//         0)`;
+//     ctx.fillRect(j * 25, i * 25, 25, 25);
+//   }
+// }
+
 
 exports["default"] = _default;
 

@@ -12,11 +12,11 @@ class Canvas extends Component {
     // ball
     let x = canvas.width / 2
 
-    let dx = 2
-    let dy = -2
+    let dx = 8
+    let dy = -8
     const ballRadius = 10
     const paddleHeight = 10
-    let paddleWidth = 75
+    let paddleWidth = canvas.width
     let paddleY = canvas.height - paddleHeight * 4
     let paddleX = (canvas.width - paddleWidth) / 2
     let y = paddleY - ballRadius
@@ -25,6 +25,7 @@ class Canvas extends Component {
     let gameStarted = false
     let gameOver = false
     let score = 0
+    let level = 0
     let lives = 3
     let name = ''
     let paralaxX = 2
@@ -32,20 +33,22 @@ class Canvas extends Component {
     let currentPower
     let note = ''
     let pSpeed = 7
+    let remaining = 0
+    let interval
     let visPowers = []
     let powerUps = [
-      {
-        func: () => {
-          paddleWidth = 200
-        },
-        message: 'Thicc Paddle'
-      },
-      {
-        func: () => {
-          paddleWidth = 30
-        },
-        message: 'Smol Paddle'
-      },
+      // {
+      //   func: () => {
+      //     paddleWidth = 200
+      //   },
+      //   message: 'Thicc Paddle'
+      // },
+      // {
+      //   func: () => {
+      //     paddleWidth = 30
+      //   },
+      //   message: 'Smol Paddle'
+      // },
       {
         func: () => {
           lives++
@@ -61,35 +64,57 @@ class Canvas extends Component {
       }
     ]
 
-    // blocks
-    let brickWidth = 75
-    let brickHeight = 20
-    let brickPadding = 10
-    let brickOffsetTop = 30
-    let brickOffsetLeft = (canvas.width % (brickWidth + brickPadding)) / 2
-    let brickRowCount = canvas.width / (brickOffsetTop + brickHeight)
-    let brickColumnCount = Math.round(canvas.width / (15 + brickWidth))
-    let powerUpIds = []
-    for (let i = (brickRowCount * brickColumnCount) / 10; i > 0; i--) {
-      powerUpIds.push(
-        Math.round(Math.random() * (brickRowCount * brickColumnCount - 1) + 5)
-      )
+    let brickWidth
+    let brickHeight
+    let brickPadding
+    let brickOffsetTop
+    let brickOffsetLeft
+    let brickRowCount
+    let brickColumnCount
+    let powerUpIds
+    let bricks
+    let i
+
+    const setup = async () => {
+      x = paddleX + paddleWidth / 2
+      y = canvas.height - paddleHeight * 5
+      dx = 8
+      dy = -8
+      clearInterval(interval)
+      visPowers = []
+      gameStarted = false
     }
-    let bricks = []
-    let i = 0
-    for (var c = 0; c < brickColumnCount; c++) {
-      bricks[c] = []
-      for (var r = 0; r < brickRowCount; r++) {
-        i++
-        bricks[c][r] = { x: 0, y: 0, alive: true }
-        if (powerUpIds.includes(i)) {
-          bricks[c][r].powerUp =
-            powerUps[Math.floor(Math.random() * powerUps.length)]
+
+    const spawnBlocks = () => {
+      // blocks
+      brickWidth = 75
+      brickHeight = 20
+      brickPadding = 10
+      brickOffsetTop = 30
+      brickOffsetLeft = (canvas.width % (brickWidth + brickPadding)) / 2
+      brickRowCount = canvas.height / (brickOffsetTop + brickHeight)
+      brickColumnCount = Math.round(canvas.width / (15 + brickWidth))
+      remaining = brickColumnCount * brickColumnCount * (level + 1)
+      powerUpIds = []
+      for (let i = (brickRowCount * brickColumnCount) / 10; i > 0; i--) {
+        powerUpIds.push(
+          Math.round(Math.random() * (brickRowCount * brickColumnCount - 1) + 5)
+        )
+      }
+      bricks = []
+      i = 0
+      for (var c = 0; c < brickColumnCount; c++) {
+        bricks[c] = []
+        for (var r = 0; r < brickRowCount; r++) {
+          i++
+          bricks[c][r] = { x: 0, y: 0, hp: 1 + level }
+          if (powerUpIds.includes(i)) {
+            bricks[c][r].powerUp =
+              powerUps[Math.floor(Math.random() * powerUps.length)]
+          }
         }
       }
     }
-
-    let interval
 
     const keyDownHandler = evt => {
       if (
@@ -229,8 +254,33 @@ class Canvas extends Component {
       ctx.fill()
       ctx.closePath()
     }
+    const pickColor = (row, z, hp) => {
+      let mod = hp * (hp * 7) * -1 + level * 20
+      if (z) {
+        if (row % 2 === 0) {
+          return `rgb(${193 + mod}, ${75 + mod}, ${154 + mod})` // purple foreground
+        } else {
+          return `rgb(${255 + mod}, ${102 + mod}, ${204 + mod})` // pink foreground
+        }
+      } else {
+        if (row % 2 === 0) {
+          return `rgb(${155 + mod}, ${104 + mod}, ${152 + mod})` // purple background
+        } else {
+          return `rgb(${191 + mod}, ${140 + mod},${204 + mod})` // pink background
+        }
+      }
+    }
+
+    // rgb(155, 104, 152) //purple background
+    // rgb(193, 75, 154) //purple foreground
+    // rgb(191, 140, 204) //pink background
+    // rgb(255, 102, 204)//pink foreground
 
     const drawBricks = () => {
+      if (score === 0 && !gameStarted) {
+        spawnBlocks()
+        setup()
+      }
       for (var c = 0; c < brickColumnCount; c++) {
         for (var r = 0; r < brickRowCount; r++) {
           let brick = bricks[c][r]
@@ -238,7 +288,7 @@ class Canvas extends Component {
           let brickY = r * (brickHeight + brickPadding) + brickOffsetTop
           brick.x = brickX
           brick.y = brickY
-          if (brick.alive) {
+          if (brick.hp) {
             ctx.beginPath()
             ctx.rect(
               brickX + paralaxX,
@@ -246,18 +296,20 @@ class Canvas extends Component {
               brickWidth,
               brickHeight
             )
-            if (r % 2 === 0) ctx.fillStyle = `#9b6898`
-            else ctx.fillStyle = '#c14b9a'
+            // if (r % 2 === 0) ctx.fillStyle = `#9b6898`
+            // else ctx.fillStyle = '#c14b9a'
+            ctx.fillStyle = pickColor(r, 0, brick.hp)
             ctx.fill()
             ctx.closePath()
             ctx.beginPath()
             ctx.rect(brickX, brickY, brickWidth, brickHeight)
-            if (r % 2 === 0) ctx.fillStyle = `#bf8ccc`
-            else ctx.fillStyle = '#ff66cc'
+            ctx.fillStyle = pickColor(r, 1, brick.hp)
+            // if (r % 2 === 0) ctx.fillStyle = `#bf8ccc`
+            // else ctx.fillStyle = '#ff66cc'
             ctx.fill()
             ctx.closePath()
           } else {
-            if (brick.powerUp) {
+            if (brick.powerUp && !brick.hp) {
               const { x, y, powerUp } = brick
               visPowers.push({
                 x: x + brickWidth / 2,
@@ -341,16 +393,27 @@ class Canvas extends Component {
             x < b.x + brickWidth &&
             y > b.y &&
             y < b.y + brickHeight &&
-            b.alive
+            b.hp
           ) {
             dy = -dy
-            b.alive = false
+            b.hp--
+            if (!b.hp) {
+              remaining--
+            }
             score += 10
           }
         }
       }
-      if (score / 10 >= brickRowCount * brickColumnCount) {
-        endGame()
+      if (!remaining) {
+        level++
+        x = paddleX + paddleWidth / 2
+        y = canvas.height - paddleHeight * 5
+        dx = 8
+        dy = -8
+        gameStarted = false
+        clearInterval(interval)
+        spawnBlocks()
+        draw()
       }
     }
     const draw = () => {
@@ -368,14 +431,8 @@ class Canvas extends Component {
           dy *= -1
         } else if (y + dy > canvas.height - ballRadius) {
           if (lives > 0) {
-            gameStarted = false
-            clearInterval(interval)
-            visPowers = []
+            setup()
             lives--
-            x = paddleX + paddleWidth / 2
-            y = canvas.height - paddleHeight * 5
-            dx = 2
-            dy = -2
           } else {
             endGame()
           }
@@ -458,3 +515,13 @@ export default withRouter(
     mapDispatch
   )(Canvas)
 )
+
+// for (let i = 0; i < 6; i++) {
+//   for (let j = 0; j < 6; j++) {
+//     ctx.fillStyle = `rgb(
+//         ${Math.floor(255 - 42.5 * i)},
+//         ${Math.floor(255 - 42.5 * j)},
+//         0)`;
+//     ctx.fillRect(j * 25, i * 25, 25, 25);
+//   }
+// }
