@@ -184,11 +184,11 @@ function (_Component) {
       var ctx = canvas.getContext('2d'); // ball
 
       var x = canvas.width / 2;
-      var dx = 8;
-      var dy = -8;
+      var dx = 2;
+      var dy = -2;
       var ballRadius = 10;
       var paddleHeight = 10;
-      var paddleWidth = canvas.width;
+      var paddleWidth = 75;
       var paddleY = canvas.height - paddleHeight * 4;
       var paddleX = (canvas.width - paddleWidth) / 2;
       var y = paddleY - ballRadius;
@@ -208,19 +208,17 @@ function (_Component) {
       var remaining = 0;
       var interval;
       var visPowers = [];
-      var powerUps = [// {
-      //   func: () => {
-      //     paddleWidth = 200
-      //   },
-      //   message: 'Thicc Paddle'
-      // },
-      // {
-      //   func: () => {
-      //     paddleWidth = 30
-      //   },
-      //   message: 'Smol Paddle'
-      // },
-      {
+      var powerUps = [{
+        func: function func() {
+          paddleWidth = 200;
+        },
+        message: 'Thicc Paddle'
+      }, {
+        func: function func() {
+          paddleWidth = 30;
+        },
+        message: 'Smol Paddle'
+      }, {
         func: function func() {
           lives++;
         },
@@ -255,8 +253,8 @@ function (_Component) {
                 case 0:
                   x = paddleX + paddleWidth / 2;
                   y = canvas.height - paddleHeight * 5;
-                  dx = 8;
-                  dy = -8;
+                  dx = 2;
+                  dy = -2;
                   clearInterval(interval);
                   visPowers = [];
                   gameStarted = false;
@@ -426,12 +424,12 @@ function (_Component) {
           i += 22;
 
           if (entry.score < score && insert === false) {
-            ctx.fillText('-' + name + ': ' + score, 8, 20 + i);
+            ctx.fillText('-' + name + ': ' + score, canvas.width / 2, 20 + i);
             i += 22;
             insert = true;
           }
 
-          return ctx.fillText('-' + entry.email + ': ' + entry.score, 8, 20 + i);
+          return ctx.fillText('-' + entry.email + ': ' + entry.score, canvas.width / 2, 20 + i);
         });
       };
 

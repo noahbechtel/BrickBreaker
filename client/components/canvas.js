@@ -12,11 +12,11 @@ class Canvas extends Component {
     // ball
     let x = canvas.width / 2
 
-    let dx = 8
-    let dy = -8
+    let dx = 2
+    let dy = -2
     const ballRadius = 10
     const paddleHeight = 10
-    let paddleWidth = canvas.width
+    let paddleWidth = 75
     let paddleY = canvas.height - paddleHeight * 4
     let paddleX = (canvas.width - paddleWidth) / 2
     let y = paddleY - ballRadius
@@ -37,18 +37,18 @@ class Canvas extends Component {
     let interval
     let visPowers = []
     let powerUps = [
-      // {
-      //   func: () => {
-      //     paddleWidth = 200
-      //   },
-      //   message: 'Thicc Paddle'
-      // },
-      // {
-      //   func: () => {
-      //     paddleWidth = 30
-      //   },
-      //   message: 'Smol Paddle'
-      // },
+      {
+        func: () => {
+          paddleWidth = 200
+        },
+        message: 'Thicc Paddle'
+      },
+      {
+        func: () => {
+          paddleWidth = 30
+        },
+        message: 'Smol Paddle'
+      },
       {
         func: () => {
           lives++
@@ -78,8 +78,8 @@ class Canvas extends Component {
     const setup = async () => {
       x = paddleX + paddleWidth / 2
       y = canvas.height - paddleHeight * 5
-      dx = 8
-      dy = -8
+      dx = 2
+      dy = -2
       clearInterval(interval)
       visPowers = []
       gameStarted = false
@@ -229,11 +229,11 @@ class Canvas extends Component {
         i += 22
 
         if (entry.score < score && insert === false) {
-          ctx.fillText('-' + name + ': ' + score, 8, 20 + i)
+          ctx.fillText('-' + name + ': ' + score, canvas.width / 2, 20 + i)
           i += 22
           insert = true
         }
-        return ctx.fillText('-' + entry.email + ': ' + entry.score, 8, 20 + i)
+        return ctx.fillText('-' + entry.email + ': ' + entry.score, canvas.width / 2, 20 + i)
       })
     }
 
